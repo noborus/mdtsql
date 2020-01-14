@@ -16,16 +16,10 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mdtsql",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Short: "Execute SQL for markdown table",
+	Long: `Execute SQL for table in markdown.
+	The result can be output to CSV, JSON, LTSV, Markdwon, etc.`,
+	// Run: func(cmd *cobra.Command, args []string) {},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -41,14 +35,17 @@ func Execute() {
 // Header is an output header specification(CSV and RAW only).
 var Header bool
 
+// Debug is debug print.
+var Debug bool
+
+// Caption makes the text before the table the table name.
+var Caption bool
+
 // Delimiter is a delimiter specification (CSV ans RAW only).
 var Delimiter string
 
 // OutFormat is an output format specification.
 var OutFormat string
-
-// Query is SQL specification.
-var Query string
 
 func init() {
 	cobra.OnInitialize(initConfig)
@@ -57,12 +54,12 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mdtsql.yaml)")
+	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "debug print")
+	rootCmd.PersistentFlags().BoolVarP(&Caption, "caption", "c", false, "caption table name")
 
-	rootCmd.PersistentFlags().StringVarP(&OutFormat, "OutFormat", "o", "at", "output format=at|csv|ltsv|json|tbln|raw|md|vf")
+	rootCmd.PersistentFlags().StringVarP(&OutFormat, "OutFormat", "o", "md", "output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf")
 	rootCmd.PersistentFlags().StringVarP(&Delimiter, "Delimiter", "d", ",", "output delimiter (CSV only)")
 	rootCmd.PersistentFlags().BoolVarP(&Header, "Header", "O", false, "output header (CSV only)")
-
-	rootCmd.PersistentFlags().StringVarP(&Query, "Query", "q", "", "query")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
