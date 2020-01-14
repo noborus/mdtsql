@@ -10,31 +10,37 @@ import (
 	"github.com/noborus/trdsql"
 )
 
-func exec(fileName string, query string, caption bool) error {
+func importer(fileName string, caption bool) (*mdtsql.Importer, error) {
 	var f io.Reader
 	if fileName != "stdin" {
 		var err error
 		f, err = os.Open(fileName)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		f = os.Stdin
 	}
 	md, err := ioutil.ReadAll(f)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	tableName := filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))])
 
 	if Debug {
 		trdsql.EnableDebug()
 	}
+	im := mdtsql.NewImporter(tableName, md, caption)
+	return &im, nil
+}
 
-	importer := mdtsql.NewImporter(tableName, md, caption)
-
+func exec(fileName string, query string, caption bool) error {
+	importer, err := importer(fileName, caption)
+	if err != nil {
+		return err
+	}
 	trd := trdsql.NewTRDSQL(
-		&importer,
+		importer,
 		trdsql.NewExporter(
 			outFormat(),
 		),
