@@ -19,7 +19,6 @@ var queryCmd = &cobra.Command{
 		if len(args) >= 2 {
 			fileName = args[1]
 		}
-
 		return exec(fileName, query, Caption)
 	},
 }

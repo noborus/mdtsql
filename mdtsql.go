@@ -2,10 +2,12 @@ package mdtsql
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/gomarkdown/markdown/ast"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/noborus/trdsql"
+	"github.com/olekukonko/tablewriter"
 )
 
 type Importer struct {
@@ -26,9 +28,16 @@ func NewImporter(tableName string, md []byte, caption bool) Importer {
 	return im
 }
 
-func (im *Importer) Dump() {
-	for _, table := range im.tableNames {
-		fmt.Println(table)
+func (im *Importer) Dump(w io.Writer) {
+	for i, table := range im.tables {
+		fmt.Fprintf(w, "Table Name: [%s]\n", im.tableNames[i])
+		typeTable := tablewriter.NewWriter(w)
+		typeTable.SetAutoFormatHeaders(false)
+		typeTable.SetHeader([]string{"column name", "type"})
+		for _, name := range table.names {
+			typeTable.Append([]string{name, "text"})
+		}
+		typeTable.Render()
 	}
 }
 
@@ -58,7 +67,7 @@ func (im *Importer) parseNode(node ast.Node) error {
 	switch node := node.(type) {
 	case *ast.Heading:
 		if im.caption {
-			im.tableName = text(ast.GetFirstChild(node))
+			im.tableName = text(ast.GetLastChild(node))
 		}
 	case *ast.Text:
 		if im.caption {
