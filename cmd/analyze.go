@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -23,7 +24,7 @@ var analyzeCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		im.Dump()
+		im.Dump(os.Stdout)
 		return nil
 	},
 }
