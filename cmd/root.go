@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -18,8 +19,22 @@ var rootCmd = &cobra.Command{
 	Use:   "mdtsql",
 	Short: "Execute SQL for markdown table",
 	Long: `Execute SQL for table in markdown.
-	The result can be output to CSV, JSON, LTSV, Markdwon, etc.`,
-	// Run: func(cmd *cobra.Command, args []string) {},
+The result can be output to CSV, JSON, LTSV, Markdwon, etc.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fileName := ""
+		if len(args) >= 1 {
+			fileName = args[0]
+		}
+		var err error
+		if Query != "" {
+			err = exec(fileName, Query, Caption)
+		} else {
+			err = analyzeDump(fileName, Caption)
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -47,6 +62,9 @@ var Delimiter string
 // OutFormat is an output format specification.
 var OutFormat string
 
+// Query is exec SQL query..
+var Query string
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -56,6 +74,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mdtsql.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "debug print")
 	rootCmd.PersistentFlags().BoolVarP(&Caption, "caption", "c", false, "caption table name")
+	rootCmd.PersistentFlags().StringVarP(&Query, "query", "q", "", "SQL query")
 
 	rootCmd.PersistentFlags().StringVarP(&OutFormat, "OutFormat", "o", "md", "output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf")
 	rootCmd.PersistentFlags().StringVarP(&Delimiter, "Delimiter", "d", ",", "output delimiter (CSV only)")

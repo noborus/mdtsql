@@ -38,6 +38,7 @@ func (im *Importer) Dump(w io.Writer) {
 			typeTable.Append([]string{name, "text"})
 		}
 		typeTable.Render()
+		fmt.Fprintf(w, "\n")
 	}
 }
 

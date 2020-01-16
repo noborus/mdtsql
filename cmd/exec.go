@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -35,6 +36,10 @@ func importer(fileName string, caption bool) (*mdtsql.Importer, error) {
 }
 
 func exec(fileName string, query string, caption bool) error {
+	if fileName == "" {
+		fileName = "stdin"
+	}
+
 	importer, err := importer(fileName, caption)
 	if err != nil {
 		return err
@@ -46,4 +51,23 @@ func exec(fileName string, query string, caption bool) error {
 		),
 	)
 	return trd.Exec(query)
+}
+
+func analyzeDump(fileName string, caption bool) error {
+	if fileName == "" {
+		return fmt.Errorf("require markdown file")
+	}
+	if fileName == "-" {
+		fileName = "stdin"
+	}
+	im, err := importer(fileName, Caption)
+	if err != nil {
+		return err
+	}
+	err = im.Analyze()
+	if err != nil {
+		return err
+	}
+	im.Dump(os.Stdout)
+	return nil
 }
