@@ -27,7 +27,7 @@ The result can be output to CSV, JSON, LTSV, Markdwon, etc.`,
 		}
 		var err error
 		if Query != "" {
-			err = exec(fileName, Query, Caption)
+			err = queryExec(fileName, Query, Caption)
 		} else {
 			err = analyzeDump(fileName, Caption)
 		}

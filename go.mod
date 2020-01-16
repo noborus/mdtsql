@@ -10,8 +10,9 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/noborus/trdsql v0.7.3
 	github.com/olekukonko/tablewriter v0.0.4
+	github.com/shurcooL/go v0.0.0-20191216061654-b114cc39af9f // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.3.2
-	golang.org/x/crypto v0.0.0-20200109152110-61a87790db17 // indirect
-	golang.org/x/sys v0.0.0-20200113162924-86b910548bc1 // indirect
+	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d // indirect
+	golang.org/x/sys v0.0.0-20200116001909-b77594299b42 // indirect
 )

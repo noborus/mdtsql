@@ -3,6 +3,7 @@ package mdtsql
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/gomarkdown/markdown/ast"
 	"github.com/noborus/trdsql"
@@ -31,21 +32,29 @@ func (t table) ReadRow(row []interface{}) ([]interface{}, error) {
 	return nil, io.EOF
 }
 
-func text(node ast.Node) string {
-	if node == nil {
-		return ""
+func toText(nodes []ast.Node) string {
+	var ret string
+	for _, node := range nodes {
+		switch node := node.(type) {
+		case *ast.Text, *ast.Code:
+			l := (node).AsLeaf()
+			if l == nil {
+				continue
+			}
+			ret += string(l.Literal)
+		case *ast.Link:
+			ret += toText(node.Children)
+		default:
+			fmt.Fprintf(os.Stderr, "unknown node:%#v\n", node)
+		}
 	}
-	l := (node).AsLeaf()
-	if l == nil {
-		return ""
-	}
-	return string(l.Literal)
+	return ret
 }
 
 func tableCell(node ast.Node) string {
 	switch node := node.(type) {
 	case *ast.TableCell:
-		return text(ast.GetFirstChild(node))
+		return toText(node.Children)
 	default:
 		return ""
 	}
@@ -60,6 +69,7 @@ func tableRow(node ast.Node) []string {
 		}
 		return row
 	default:
+		fmt.Fprintf(os.Stderr, "unknown node:%#v\n", node)
 		return []string{}
 	}
 }
@@ -78,7 +88,7 @@ func tableNode(node ast.Node) table {
 				}
 				t.names = r
 			}
-		case *ast.TableBody:
+		case *ast.TableBody, *ast.TableFooter:
 			for _, row := range table.GetChildren() {
 				r := tableRow(row)
 				data := make([]interface{}, len(r))
@@ -88,7 +98,7 @@ func tableNode(node ast.Node) table {
 				t.body = append(t.body, data)
 			}
 		default:
-			// ast.Print(os.Stdout, node)
+			ast.Print(os.Stderr, node)
 		}
 	}
 	t.types = make([]string, len(t.names))

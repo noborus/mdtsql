@@ -68,11 +68,11 @@ func (im *Importer) parseNode(node ast.Node) error {
 	switch node := node.(type) {
 	case *ast.Heading:
 		if im.caption {
-			im.tableName = text(ast.GetLastChild(node))
+			im.tableName = toText(node.Children)
 		}
 	case *ast.Text:
 		if im.caption {
-			im.tableName = text(node)
+			im.tableName = string(node.AsLeaf().Literal)
 		}
 	case *ast.Table:
 		tableName := im.tableName

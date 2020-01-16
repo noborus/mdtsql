@@ -35,7 +35,7 @@ func importer(fileName string, caption bool) (*mdtsql.Importer, error) {
 	return &im, nil
 }
 
-func exec(fileName string, query string, caption bool) error {
+func queryExec(fileName string, query string, caption bool) error {
 	if fileName == "" {
 		fileName = "stdin"
 	}
