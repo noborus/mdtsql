@@ -10,7 +10,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/noborus/trdsql v0.7.3
 	github.com/olekukonko/tablewriter v0.0.4
-	github.com/shurcooL/go v0.0.0-20191216061654-b114cc39af9f // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.3.2
 	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d // indirect

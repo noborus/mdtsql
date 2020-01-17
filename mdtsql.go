@@ -3,6 +3,9 @@ package mdtsql
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/gomarkdown/markdown/ast"
 	"github.com/gomarkdown/markdown/parser"
@@ -108,4 +111,61 @@ func already(tableNames []string, tableName string) bool {
 		}
 	}
 	return false
+}
+
+func MarkdownQuery(fileName string, query string, caption bool, w trdsql.Writer) error {
+	if fileName == "" {
+		fileName = "stdin"
+	}
+
+	importer, err := importer(fileName, caption)
+	if err != nil {
+		return err
+	}
+	trd := trdsql.NewTRDSQL(
+		importer,
+		trdsql.NewExporter(
+			w,
+		),
+	)
+	return trd.Exec(query)
+}
+
+func Analyze(fileName string, caption bool) (*Importer, error) {
+	if fileName == "" {
+		return nil, fmt.Errorf("require markdown file")
+	}
+	if fileName == "-" {
+		fileName = "stdin"
+	}
+	im, err := importer(fileName, caption)
+	if err != nil {
+		return nil, err
+	}
+	err = im.Analyze()
+	if err != nil {
+		return nil, err
+	}
+	return im, nil
+}
+
+func importer(fileName string, caption bool) (*Importer, error) {
+	var f io.Reader
+	if fileName != "stdin" {
+		var err error
+		f, err = os.Open(fileName)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		f = os.Stdin
+	}
+	md, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+	tableName := filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))])
+
+	im := NewImporter(tableName, md, caption)
+	return &im, nil
 }

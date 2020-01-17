@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -21,6 +22,10 @@ var rootCmd = &cobra.Command{
 	Long: `Execute SQL for table in markdown.
 The result can be output to CSV, JSON, LTSV, Markdwon, etc.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if Ver {
+			fmt.Printf("mdtsql version %s rev:%s\n", Version, Revision)
+			return
+		}
 		fileName := ""
 		if len(args) >= 1 {
 			fileName = args[0]
@@ -37,9 +42,18 @@ The result can be output to CSV, JSON, LTSV, Markdwon, etc.`,
 	},
 }
 
+var (
+	// Version represents the version
+	Version string
+	// Revision set "git rev-parse --short HEAD"
+	Revision string
+)
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(version string, revision string) {
+	Version = version
+	Revision = revision
 	if err := rootCmd.Execute(); err != nil {
 		rootCmd.SetOutput(os.Stderr)
 		rootCmd.Println(err)
@@ -49,6 +63,9 @@ func Execute() {
 
 // Header is an output header specification(CSV and RAW only).
 var Header bool
+
+// Ver is version information.
+var Ver bool
 
 // Debug is debug print.
 var Debug bool
@@ -72,6 +89,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mdtsql.yaml)")
+	rootCmd.PersistentFlags().BoolVarP(&Ver, "version", "v", false, "display version information")
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "debug print")
 	rootCmd.PersistentFlags().BoolVarP(&Caption, "caption", "c", false, "caption table name")
 	rootCmd.PersistentFlags().StringVarP(&Query, "query", "q", "", "SQL query")
@@ -111,7 +129,7 @@ func initConfig() {
 	}
 }
 
-func outFormat() trdsql.Writer {
+func outFormat(outStream io.Writer, errStream io.Writer) trdsql.Writer {
 	var format trdsql.Format
 	switch strings.ToUpper(OutFormat) {
 	case "CSV":
@@ -139,6 +157,8 @@ func outFormat() trdsql.Writer {
 		trdsql.OutFormat(format),
 		trdsql.OutDelimiter(Delimiter),
 		trdsql.OutHeader(Header),
+		trdsql.OutStream(outStream),
+		trdsql.ErrStream(errStream),
 	)
 	return w
 }
