@@ -1,6 +1,6 @@
 # mdtsql
 
-Execute SQL in Markdown table
+Execute SQL to markdown table and convert to other format
 
 ## install
 
@@ -19,7 +19,15 @@ mdtsql [option] [markdown file]
 
 ### option
 
-```
+```sh
+mdtsql -h
+Execute SQL for table in markdown.
+The result can be output to CSV, JSON, LTSV, Markdwon, etc.
+
+Usage:
+  mdtsql [flags]
+
+Flags:
   -d, --Delimiter string   output delimiter (CSV only) (default ",")
   -O, --Header             output header (CSV only)
   -o, --OutFormat string   output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf (default "md")
@@ -29,6 +37,7 @@ mdtsql [option] [markdown file]
   -h, --help               help for mdtsql
   -q, --query string       SQL query
   -t, --toggle             Help message for toggle
+  -v, --version            display version information
 ```
 
 ### Example

@@ -36,16 +36,29 @@ func toText(nodes []ast.Node) string {
 	var ret string
 	for _, node := range nodes {
 		switch node := node.(type) {
-		case *ast.Text, *ast.Code:
+		case *ast.Text:
 			l := (node).AsLeaf()
 			if l == nil {
 				continue
 			}
 			ret += string(l.Literal)
+		case *ast.Code:
+			l := (node).AsLeaf()
+			if l == nil {
+				continue
+			}
+			ret += "`" + string(l.Literal) + "`"
+		case *ast.Emph:
+			ret += "*" + toText(node.Children) + "*"
+		case *ast.Strong:
+			ret += "**" + toText(node.Children) + "**"
+		case *ast.Del:
+			ret += "~~" + toText(node.Children) + "~~"
 		case *ast.Link:
-			ret += toText(node.Children)
+			ret += fmt.Sprintf("[%s](%s)", toText(node.Children), string(node.Destination))
 		default:
-			fmt.Fprintf(os.Stderr, "unknown node:%#v\n", node)
+			fmt.Fprintf(os.Stderr, "unknown node:")
+			ast.Print(os.Stderr, node)
 		}
 	}
 	return ret

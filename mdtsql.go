@@ -31,6 +31,42 @@ func NewImporter(tableName string, md []byte, caption bool) Importer {
 	return im
 }
 
+func MarkdownQuery(fileName string, query string, caption bool, w trdsql.Writer) error {
+	if fileName == "" {
+		fileName = "stdin"
+	}
+
+	importer, err := importer(fileName, caption)
+	if err != nil {
+		return err
+	}
+	trd := trdsql.NewTRDSQL(
+		importer,
+		trdsql.NewExporter(
+			w,
+		),
+	)
+	return trd.Exec(query)
+}
+
+func Analyze(fileName string, caption bool) (*Importer, error) {
+	if fileName == "" {
+		return nil, fmt.Errorf("require markdown file")
+	}
+	if fileName == "-" {
+		fileName = "stdin"
+	}
+	im, err := importer(fileName, caption)
+	if err != nil {
+		return nil, err
+	}
+	err = im.Analyze()
+	if err != nil {
+		return nil, err
+	}
+	return im, nil
+}
+
 func (im *Importer) Dump(w io.Writer) {
 	for i, table := range im.tables {
 		fmt.Fprintf(w, "Table Name: [%s]\n", im.tableNames[i])
@@ -111,42 +147,6 @@ func already(tableNames []string, tableName string) bool {
 		}
 	}
 	return false
-}
-
-func MarkdownQuery(fileName string, query string, caption bool, w trdsql.Writer) error {
-	if fileName == "" {
-		fileName = "stdin"
-	}
-
-	importer, err := importer(fileName, caption)
-	if err != nil {
-		return err
-	}
-	trd := trdsql.NewTRDSQL(
-		importer,
-		trdsql.NewExporter(
-			w,
-		),
-	)
-	return trd.Exec(query)
-}
-
-func Analyze(fileName string, caption bool) (*Importer, error) {
-	if fileName == "" {
-		return nil, fmt.Errorf("require markdown file")
-	}
-	if fileName == "-" {
-		fileName = "stdin"
-	}
-	im, err := importer(fileName, caption)
-	if err != nil {
-		return nil, err
-	}
-	err = im.Analyze()
-	if err != nil {
-		return nil, err
-	}
-	return im, nil
 }
 
 func importer(fileName string, caption bool) (*Importer, error) {
