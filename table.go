@@ -55,7 +55,14 @@ func toText(nodes []ast.Node) string {
 		case *ast.Del:
 			ret += "~~" + toText(node.Children) + "~~"
 		case *ast.Link:
-			ret += fmt.Sprintf("[%s](%s)", toText(node.Children), string(node.Destination))
+			link := string(node.Destination)
+			title := string(node.Title)
+			content := toText(node.Children)
+			ret += fmt.Sprintf("[%s](%s", content,link)
+			if title != "" {
+				ret += fmt.Sprintf(` "%s"`, title)
+			}
+			ret += ")"
 		default:
 			fmt.Fprintf(os.Stderr, "unknown node:")
 			ast.Print(os.Stderr, node)
