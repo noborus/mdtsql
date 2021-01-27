@@ -1,6 +1,7 @@
 package mdtsql
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -81,18 +82,23 @@ func (im *Importer) Dump(w io.Writer) {
 	}
 }
 
-func (im *Importer) Import(db *trdsql.DB, query string) (string, error) {
+func (im *Importer) ImportContext(ctx context.Context, db *trdsql.DB, query string) (string, error) {
 	err := im.parseNode(im.node)
 	if err != nil {
 		return "", err
 	}
 	for i, table := range im.tables {
-		err := im.tableImport(db, im.tableNames[i], table)
+		err := im.tableImport(ctx, db, im.tableNames[i], table)
 		if err != nil {
 			return "", err
 		}
 	}
 	return query, nil
+}
+
+func (im *Importer) Import(db *trdsql.DB, query string) (string, error) {
+	ctx := context.Background()
+	return im.ImportContext(ctx, db, query)
 }
 
 func (im *Importer) Analyze() error {
@@ -132,12 +138,12 @@ func (im *Importer) parseNode(node ast.Node) error {
 	return nil
 }
 
-func (im *Importer) tableImport(db *trdsql.DB, tableName string, t table) error {
-	err := db.CreateTable(db.QuotedName(tableName), t.names, t.types, true)
+func (im *Importer) tableImport(ctx context.Context, db *trdsql.DB, tableName string, t table) error {
+	err := db.CreateTableContext(ctx, db.QuotedName(tableName), t.names, t.types, true)
 	if err != nil {
 		return err
 	}
-	return db.Import(db.QuotedName(tableName), t.names, t)
+	return db.ImportContext(ctx, db.QuotedName(tableName), t.names, t)
 }
 
 func already(tableNames []string, tableName string) bool {
