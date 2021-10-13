@@ -8,10 +8,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gomarkdown/markdown/ast"
-	"github.com/gomarkdown/markdown/parser"
 	"github.com/noborus/trdsql"
 	"github.com/olekukonko/tablewriter"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
+	gast "github.com/yuin/goldmark/extension/ast"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/renderer/html"
+	"github.com/yuin/goldmark/text"
 )
 
 type Importer struct {
@@ -20,14 +25,27 @@ type Importer struct {
 	tableNames []string
 	tables     []table
 	node       ast.Node
+	source     []byte
 }
 
 func NewImporter(tableName string, md []byte, caption bool) Importer {
-	parser := parser.New()
+	gmd := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithXHTML(),
+		),
+	)
+
+	parser := gmd.Parser()
 	im := Importer{
 		tableName: tableName,
 		caption:   caption,
-		node:      parser.Parse(md),
+		node:      parser.Parse(text.NewReader(md)),
+		source:    md,
 	}
 	return im
 }
@@ -110,31 +128,31 @@ func (im *Importer) Analyze() error {
 }
 
 func (im *Importer) parseNode(node ast.Node) error {
-	switch node := node.(type) {
-	case *ast.Heading:
-		if im.caption {
-			im.tableName = toText(node.Children)
+	switch node.Type() {
+	case ast.TypeDocument:
+		for n := node.FirstChild(); n != nil; n = n.NextSibling() {
+			im.parseNode(n)
 		}
-	case *ast.Text:
-		if im.caption {
-			im.tableName = string(node.AsLeaf().Literal)
+	case ast.TypeBlock:
+		if node.Kind() == gast.KindTable {
+			im.tables = append(im.tables, im.tableNode(node))
+			tableName := im.tableName
+			for i := 2; already(im.tableNames, tableName); i++ {
+				tableName = fmt.Sprintf("%s_%d", im.tableName, i)
+			}
+			im.tableNames = append(im.tableNames, tableName)
+			return nil
 		}
-	case *ast.Table:
-		tableName := im.tableName
-		for i := 2; already(im.tableNames, tableName); i++ {
-			tableName = fmt.Sprintf("%s_%d", im.tableName, i)
-		}
-		im.tableNames = append(im.tableNames, tableName)
-		im.tables = append(im.tables, tableNode(node))
-	default:
-		for _, node := range node.GetChildren() {
-			err := im.parseNode(node)
-			if err != nil {
-				return err
+
+		switch node.Kind() {
+		case ast.KindHeading, ast.KindParagraph:
+			if im.caption {
+				im.tableName = string(node.Text(im.source))
 			}
 		}
+	default:
+		fmt.Printf("d %v:%v\n", node.Kind(), node.Type())
 	}
-
 	return nil
 }
 
