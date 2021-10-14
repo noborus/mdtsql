@@ -79,8 +79,7 @@ func Analyze(fileName string, caption bool) (*Importer, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = im.Analyze()
-	if err != nil {
+	if err = im.Analyze(); err != nil {
 		return nil, err
 	}
 	return im, nil
@@ -101,13 +100,11 @@ func (im *Importer) Dump(w io.Writer) {
 }
 
 func (im *Importer) ImportContext(ctx context.Context, db *trdsql.DB, query string) (string, error) {
-	err := im.parseNode(im.node)
-	if err != nil {
+	if err := im.parseNode(im.node); err != nil {
 		return "", err
 	}
 	for i, table := range im.tables {
-		err := im.tableImport(ctx, db, im.tableNames[i], table)
-		if err != nil {
+		if err := im.tableImport(ctx, db, im.tableNames[i], table); err != nil {
 			return "", err
 		}
 	}
@@ -120,8 +117,7 @@ func (im *Importer) Import(db *trdsql.DB, query string) (string, error) {
 }
 
 func (im *Importer) Analyze() error {
-	err := im.parseNode(im.node)
-	if err != nil {
+	if err := im.parseNode(im.node); err != nil {
 		return err
 	}
 	return nil
@@ -131,7 +127,9 @@ func (im *Importer) parseNode(node ast.Node) error {
 	switch node.Type() {
 	case ast.TypeDocument:
 		for n := node.FirstChild(); n != nil; n = n.NextSibling() {
-			im.parseNode(n)
+			if err := im.parseNode(im.node); err != nil {
+				return err
+			}
 		}
 	case ast.TypeBlock:
 		if node.Kind() == gast.KindTable {
@@ -151,14 +149,14 @@ func (im *Importer) parseNode(node ast.Node) error {
 			}
 		}
 	default:
-		fmt.Printf("d %v:%v\n", node.Kind(), node.Type())
+		fmt.Fprintf(os.Stderr, "unknown node:")
+		fmt.Fprintf(os.Stderr, "%v:%v\n", node.Kind(), node.Type())
 	}
 	return nil
 }
 
 func (im *Importer) tableImport(ctx context.Context, db *trdsql.DB, tableName string, t table) error {
-	err := db.CreateTableContext(ctx, db.QuotedName(tableName), t.names, t.types, true)
-	if err != nil {
+	if err := db.CreateTableContext(ctx, db.QuotedName(tableName), t.names, t.types, true); err != nil {
 		return err
 	}
 	return db.ImportContext(ctx, db.QuotedName(tableName), t.names, t)
