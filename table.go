@@ -5,8 +5,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/gomarkdown/markdown/ast"
 	"github.com/noborus/trdsql"
+	"github.com/yuin/goldmark/ast"
+	gast "github.com/yuin/goldmark/extension/ast"
 )
 
 type table struct {
@@ -32,86 +33,45 @@ func (t table) ReadRow(row []interface{}) ([]interface{}, error) {
 	return nil, io.EOF
 }
 
-func toText(nodes []ast.Node) string {
-	var ret string
-	for _, node := range nodes {
-		switch node := node.(type) {
-		case *ast.Text:
-			l := (node).AsLeaf()
-			if l == nil {
-				continue
+func toText(buf []byte) string {
+	if len(buf) > 0 {
+		return string(buf)
+	}
+	return ""
+}
+
+func (im *Importer) tableNode(node ast.Node) table {
+	t := table{}
+	for n := node.FirstChild(); n != nil; n = n.NextSibling() {
+		switch n.Kind() {
+		case gast.KindTableHeader:
+			i := 0
+			for c := n.FirstChild(); c != nil; c = c.NextSibling() {
+				col := toText(c.Text(im.source))
+				if col == "" {
+					col = fmt.Sprintf("c%d", i+1)
+				}
+				t.names = append(t.names, col)
+				i++
 			}
-			ret += string(l.Literal)
-		case *ast.Code:
-			l := (node).AsLeaf()
-			if l == nil {
-				continue
+		case gast.KindTableRow:
+			row := []string{}
+			for c := n.FirstChild(); c != nil; c = c.NextSibling() {
+				rawText := []byte{}
+				for i := 0; i < c.Lines().Len(); i++ {
+					line := c.Lines().At(i)
+					rawText = append(rawText, line.Value(im.source)...)
+				}
+				row = append(row, string(rawText))
 			}
-			ret += "`" + string(l.Literal) + "`"
-		case *ast.Emph:
-			ret += "*" + toText(node.Children) + "*"
-		case *ast.Strong:
-			ret += "**" + toText(node.Children) + "**"
-		case *ast.Del:
-			ret += "~~" + toText(node.Children) + "~~"
-		case *ast.Link:
-			ret += fmt.Sprintf("[%s](%s)", toText(node.Children), string(node.Destination))
+			data := make([]interface{}, len(row))
+			for i, col := range row {
+				data[i] = col
+			}
+			t.body = append(t.body, data)
 		default:
 			fmt.Fprintf(os.Stderr, "unknown node:")
-			ast.Print(os.Stderr, node)
-		}
-	}
-	return ret
-}
-
-func tableCell(node ast.Node) string {
-	switch node := node.(type) {
-	case *ast.TableCell:
-		return toText(node.Children)
-	default:
-		return ""
-	}
-}
-
-func tableRow(node ast.Node) []string {
-	row := []string{}
-	switch node := node.(type) {
-	case *ast.TableRow:
-		for _, n := range node.GetChildren() {
-			row = append(row, tableCell(n))
-		}
-		return row
-	default:
-		fmt.Fprintf(os.Stderr, "unknown node:%#v\n", node)
-		return []string{}
-	}
-}
-
-func tableNode(node ast.Node) table {
-	t := table{}
-	for _, table := range node.GetChildren() {
-		switch table := table.(type) {
-		case *ast.TableHeader:
-			for _, row := range table.GetChildren() {
-				r := tableRow(row)
-				for i, col := range r {
-					if col == "" {
-						r[i] = fmt.Sprintf("c%d", i+1)
-					}
-				}
-				t.names = r
-			}
-		case *ast.TableBody, *ast.TableFooter:
-			for _, row := range table.GetChildren() {
-				r := tableRow(row)
-				data := make([]interface{}, len(r))
-				for i, col := range r {
-					data[i] = col
-				}
-				t.body = append(t.body, data)
-			}
-		default:
-			ast.Print(os.Stderr, node)
+			fmt.Fprintf(os.Stderr, "%v:%v\n", n.Kind(), n.Type())
 		}
 	}
 	t.types = make([]string, len(t.names))

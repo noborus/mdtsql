@@ -8,10 +8,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gomarkdown/markdown/ast"
-	"github.com/gomarkdown/markdown/parser"
 	"github.com/noborus/trdsql"
 	"github.com/olekukonko/tablewriter"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
+	gast "github.com/yuin/goldmark/extension/ast"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/renderer/html"
+	"github.com/yuin/goldmark/text"
 )
 
 type Importer struct {
@@ -20,14 +25,27 @@ type Importer struct {
 	tableNames []string
 	tables     []table
 	node       ast.Node
+	source     []byte
 }
 
 func NewImporter(tableName string, md []byte, caption bool) Importer {
-	parser := parser.New()
+	gmd := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithXHTML(),
+		),
+	)
+
+	parser := gmd.Parser()
 	im := Importer{
 		tableName: tableName,
 		caption:   caption,
-		node:      parser.Parse(md),
+		node:      parser.Parse(text.NewReader(md)),
+		source:    md,
 	}
 	return im
 }
@@ -61,8 +79,7 @@ func Analyze(fileName string, caption bool) (*Importer, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = im.Analyze()
-	if err != nil {
+	if err = im.Analyze(); err != nil {
 		return nil, err
 	}
 	return im, nil
@@ -83,13 +100,11 @@ func (im *Importer) Dump(w io.Writer) {
 }
 
 func (im *Importer) ImportContext(ctx context.Context, db *trdsql.DB, query string) (string, error) {
-	err := im.parseNode(im.node)
-	if err != nil {
+	if err := im.parseNode(im.node); err != nil {
 		return "", err
 	}
 	for i, table := range im.tables {
-		err := im.tableImport(ctx, db, im.tableNames[i], table)
-		if err != nil {
+		if err := im.tableImport(ctx, db, im.tableNames[i], table); err != nil {
 			return "", err
 		}
 	}
@@ -102,45 +117,46 @@ func (im *Importer) Import(db *trdsql.DB, query string) (string, error) {
 }
 
 func (im *Importer) Analyze() error {
-	err := im.parseNode(im.node)
-	if err != nil {
+	if err := im.parseNode(im.node); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (im *Importer) parseNode(node ast.Node) error {
-	switch node := node.(type) {
-	case *ast.Heading:
-		if im.caption {
-			im.tableName = toText(node.Children)
-		}
-	case *ast.Text:
-		if im.caption {
-			im.tableName = string(node.AsLeaf().Literal)
-		}
-	case *ast.Table:
-		tableName := im.tableName
-		for i := 2; already(im.tableNames, tableName); i++ {
-			tableName = fmt.Sprintf("%s_%d", im.tableName, i)
-		}
-		im.tableNames = append(im.tableNames, tableName)
-		im.tables = append(im.tables, tableNode(node))
-	default:
-		for _, node := range node.GetChildren() {
-			err := im.parseNode(node)
-			if err != nil {
+	switch node.Type() {
+	case ast.TypeDocument:
+		for n := node.FirstChild(); n != nil; n = n.NextSibling() {
+			if err := im.parseNode(n); err != nil {
 				return err
 			}
 		}
-	}
+	case ast.TypeBlock:
+		if node.Kind() == gast.KindTable {
+			im.tables = append(im.tables, im.tableNode(node))
+			tableName := im.tableName
+			for i := 2; already(im.tableNames, tableName); i++ {
+				tableName = fmt.Sprintf("%s_%d", im.tableName, i)
+			}
+			im.tableNames = append(im.tableNames, tableName)
+			return nil
+		}
 
+		switch node.Kind() {
+		case ast.KindHeading, ast.KindParagraph:
+			if im.caption {
+				im.tableName = string(node.Text(im.source))
+			}
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "unknown node:")
+		fmt.Fprintf(os.Stderr, "%v:%v\n", node.Kind(), node.Type())
+	}
 	return nil
 }
 
 func (im *Importer) tableImport(ctx context.Context, db *trdsql.DB, tableName string, t table) error {
-	err := db.CreateTableContext(ctx, db.QuotedName(tableName), t.names, t.types, true)
-	if err != nil {
+	if err := db.CreateTableContext(ctx, db.QuotedName(tableName), t.names, t.types, true); err != nil {
 		return err
 	}
 	return db.ImportContext(ctx, db.QuotedName(tableName), t.names, t)
