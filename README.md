@@ -5,7 +5,7 @@ Execute SQL to markdown table and convert to other format
 ## install
 
 ```console
-go install github.com/noborus/mdtsql@latest
+go install github.com/noborus/mdtsql/cmd/mdtsql@latest
 ```
 
 ## Usage

@@ -20,12 +20,11 @@ import (
 )
 
 type Importer struct {
-	tableName  string
-	caption    bool
-	tableNames []string
-	tables     []table
-	node       ast.Node
-	source     []byte
+	tableName string
+	caption   bool
+	tables    []table
+	node      ast.Node
+	source    []byte
 }
 
 func NewImporter(tableName string, md []byte, caption bool) Importer {
@@ -86,8 +85,8 @@ func Analyze(fileName string, caption bool) (*Importer, error) {
 }
 
 func (im *Importer) Dump(w io.Writer) {
-	for i, table := range im.tables {
-		fmt.Fprintf(w, "Table Name: [%s]\n", im.tableNames[i])
+	for _, table := range im.tables {
+		fmt.Fprintf(w, "Table Name: [%s]\n", table.tableName)
 		typeTable := tablewriter.NewWriter(w)
 		typeTable.SetAutoFormatHeaders(false)
 		typeTable.SetHeader([]string{"column name", "type"})
@@ -103,8 +102,8 @@ func (im *Importer) ImportContext(ctx context.Context, db *trdsql.DB, query stri
 	if err := im.parseNode(im.node); err != nil {
 		return "", err
 	}
-	for i, table := range im.tables {
-		if err := im.tableImport(ctx, db, im.tableNames[i], table); err != nil {
+	for _, table := range im.tables {
+		if err := im.tableImport(ctx, db, table.tableName, table); err != nil {
 			return "", err
 		}
 	}
@@ -134,11 +133,11 @@ func (im *Importer) parseNode(node ast.Node) error {
 	case ast.TypeBlock:
 		if node.Kind() == gast.KindTable {
 			im.tables = append(im.tables, im.tableNode(node))
-			tableName := im.tableName
-			for i := 2; already(im.tableNames, tableName); i++ {
-				tableName = fmt.Sprintf("%s_%d", im.tableName, i)
+			if len(im.tables) == 1 {
+				im.tables[0].tableName = im.tableName
+				return nil
 			}
-			im.tableNames = append(im.tableNames, tableName)
+			im.tables[len(im.tables)-1].tableName = fmt.Sprintf("%s_%d", im.tableName, len(im.tables))
 			return nil
 		}
 
@@ -160,15 +159,6 @@ func (im *Importer) tableImport(ctx context.Context, db *trdsql.DB, tableName st
 		return err
 	}
 	return db.ImportContext(ctx, db.QuotedName(tableName), t.names, t)
-}
-
-func already(tableNames []string, tableName string) bool {
-	for _, v := range tableNames {
-		if tableName == v {
-			return true
-		}
-	}
-	return false
 }
 
 func importer(fileName string, caption bool) (*Importer, error) {

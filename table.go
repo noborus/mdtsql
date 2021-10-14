@@ -11,9 +11,10 @@ import (
 )
 
 type table struct {
-	names []string
-	types []string
-	body  [][]interface{}
+	tableName string
+	names     []string
+	types     []string
+	body      [][]interface{}
 }
 
 func (t table) Names() ([]string, error) {
