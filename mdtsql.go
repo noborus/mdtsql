@@ -127,7 +127,7 @@ func (im *Importer) parseNode(node ast.Node) error {
 	switch node.Type() {
 	case ast.TypeDocument:
 		for n := node.FirstChild(); n != nil; n = n.NextSibling() {
-			if err := im.parseNode(im.node); err != nil {
+			if err := im.parseNode(n); err != nil {
 				return err
 			}
 		}
