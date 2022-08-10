@@ -3,18 +3,18 @@ on: [push]
 jobs:
 
   build:
-    name: Build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.18', '1.19' ]
+    name: Go  ${{ matrix.go-version }}
     steps:
-
-    - name: Set up Go 1.18
-      uses: actions/setup-go@v1
+    - uses: actions/checkout@v3
+    - name: Setup Go
+      uses: actions/setup-go@v3
       with:
-        go-version: 1.18
+        go-version: ${{ matrix.go-version }}
       id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
 
     - name: Build
       run: make
