@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -172,7 +171,7 @@ func importer(fileName string, caption bool) (*Importer, error) {
 	} else {
 		f = os.Stdin
 	}
-	md, err := ioutil.ReadAll(f)
+	md, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}

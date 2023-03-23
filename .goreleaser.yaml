@@ -1,0 +1,53 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need go generate
+    - go generate ./...
+builds:
+  - env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
+    overrides:
+      - goos: linux
+        goarch: amd64
+        env:
+         - CC=gcc
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-gnu-gcc
+    id: "mdtsql"
+    main: ./cmd/mdtsql
+
+archives:
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+brews:
+  -
+    name: psutilsql
+    tap:
+      owner: noborus
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: noborus
+      email: noborusai@gmail.com
+    homepage: https://github.com/noborus/mdtsql
+    description: "Execute SQL to markdown table and convert to other format"
+# modelines, feel free to remove those if you don't want/use them:
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
