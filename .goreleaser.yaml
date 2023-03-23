@@ -38,7 +38,7 @@ changelog:
       - '^test:'
 brews:
   -
-    name: psutilsql
+    name: mdtsql
     tap:
       owner: noborus
       name: homebrew-tap
