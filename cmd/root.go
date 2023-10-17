@@ -20,7 +20,7 @@ var rootCmd = &cobra.Command{
 	Use:   "mdtsql",
 	Short: "Execute SQL for markdown table",
 	Long: `Execute SQL for table in markdown.
-The result can be output to CSV, JSON, LTSV, Markdwon, etc.`,
+The result can be output to CSV, JSON, LTSV, YAML, Markdown, etc.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if Ver {
 			fmt.Printf("mdtsql version %s rev:%s\n", Version, Revision)
@@ -150,6 +150,8 @@ func outFormat(outStream io.Writer, errStream io.Writer) trdsql.Writer {
 		format = trdsql.VF
 	case "JSONL":
 		format = trdsql.JSONL
+	case "YAML":
+		format = trdsql.YAML
 	default:
 		format = trdsql.AT
 	}
