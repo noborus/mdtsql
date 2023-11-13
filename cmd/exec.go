@@ -8,7 +8,7 @@ import (
 )
 
 func queryExec(fileName string, query string, caption bool) error {
-	w := outFormat(os.Stdout, os.Stderr)
+	w := newWriter(os.Stdout, os.Stderr)
 	if Debug {
 		trdsql.EnableDebug()
 	}
