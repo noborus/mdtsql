@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/noborus/trdsql"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -79,7 +78,7 @@ var Delimiter string
 // OutFormat is an output format specification.
 var OutFormat string
 
-// Query is exec SQL query..
+// Query is exec SQL query.
 var Query string
 
 func init() {
@@ -94,7 +93,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Caption, "caption", "c", false, "caption table name")
 	rootCmd.PersistentFlags().StringVarP(&Query, "query", "q", "", "SQL query")
 
-	rootCmd.PersistentFlags().StringVarP(&OutFormat, "OutFormat", "o", "md", "output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf")
+	rootCmd.PersistentFlags().StringVarP(&OutFormat, "OutFormat", "o", "md", "output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf|yaml")
 	rootCmd.PersistentFlags().StringVarP(&Delimiter, "Delimiter", "d", ",", "output delimiter (CSV only)")
 	rootCmd.PersistentFlags().BoolVarP(&Header, "Header", "O", false, "output header (CSV only)")
 
@@ -110,7 +109,7 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		// Find home directory.
-		home, err := homedir.Dir()
+		home, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -129,32 +128,8 @@ func initConfig() {
 	}
 }
 
-func outFormat(outStream io.Writer, errStream io.Writer) trdsql.Writer {
-	var format trdsql.Format
-	switch strings.ToUpper(OutFormat) {
-	case "CSV":
-		format = trdsql.CSV
-	case "LTSV":
-		format = trdsql.LTSV
-	case "JSON":
-		format = trdsql.JSON
-	case "TBLN":
-		format = trdsql.TBLN
-	case "RAW":
-		format = trdsql.RAW
-	case "MD":
-		format = trdsql.MD
-	case "AT":
-		format = trdsql.AT
-	case "VF":
-		format = trdsql.VF
-	case "JSONL":
-		format = trdsql.JSONL
-	case "YAML":
-		format = trdsql.YAML
-	default:
-		format = trdsql.AT
-	}
+func newWriter(outStream io.Writer, errStream io.Writer) trdsql.Writer {
+	format := trdsql.OutputFormat(strings.ToUpper(OutFormat))
 	w := trdsql.NewWriter(
 		trdsql.OutFormat(format),
 		trdsql.OutDelimiter(Delimiter),
