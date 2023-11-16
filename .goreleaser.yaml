@@ -25,7 +25,7 @@ archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of uname.
     name_template: >-
-      {{ .ProjectName }}_
+      {{ .ProjectName }}_{{ .Version }}_
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
@@ -57,6 +57,18 @@ brews:
       email: noborusai@gmail.com
     homepage: https://github.com/noborus/mdtsql
     description: "Execute SQL to markdown table and convert to other format"
+
+nfpms:
+  -
+    package_name: mdtsql
+    homepage: "https://github.com/noborus/mdtsql"
+    maintainer: "Noboru Saito <noborusai@gmail.com>"
+    description: "Execute SQL to markdown table and convert to other format"
+    license: "MIT"
+    formats:
+      - deb
+      - rpm
+
 # modelines, feel free to remove those if you don't want/use them:
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj

@@ -1,11 +1,19 @@
 # mdtsql
 
-Execute SQL to markdown table and convert to other format
+A CLI tool that executes SQL queries and converts the results into a Markdown table.
 
 ## install
 
+### Go install
+
 ```console
 go install github.com/noborus/mdtsql/cmd/mdtsql@latest
+```
+
+### Homebrew
+
+```console
+brew install noborus/tap/mdtsql
 ```
 
 ## Usage
@@ -22,22 +30,22 @@ mdtsql [option] [markdown file]
 ```sh
 mdtsql -h
 Execute SQL for table in markdown.
-The result can be output to CSV, JSON, LTSV, Markdwon, etc.
+The result can be output to CSV, JSON, LTSV, YAML, Markdown, etc.
 
 Usage:
   mdtsql [flags]
 
 Flags:
-  -d, --Delimiter string   output delimiter (CSV only) (default ",")
-  -O, --Header             output header (CSV only)
-  -o, --OutFormat string   output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf (default "md")
-  -c, --caption            caption table name
-      --config string      config file (default is $HOME/.mdtsql.yaml)
-      --debug              debug print
-  -h, --help               help for mdtsql
-  -q, --query string       SQL query
-  -t, --toggle             Help message for toggle
-  -v, --version            display version information
+  -d, --Delimiter string    output delimiter (CSV only) (default ",")
+  -O, --Header              output header (CSV only)
+  -o, --OutFormat string    output format[CSV|AT|LTSV|JSON|JSONL|TBLN|RAW|MD|VF|YAML] (default "MD")
+  -c, --caption             caption table name
+      --completion string   Generate completion script for the specified shell. The options are 'bash', 'zsh', 'fish', and 'powershell'.
+      --config string       config file (default is $HOME/.mdtsql.yaml)
+      --debug               debug print
+  -h, --help                help for mdtsql
+  -q, --query string        SQL query
+  -v, --version             display version information
 ```
 
 ### Example
@@ -76,7 +84,7 @@ If there is no `--query` or `-q` option,
 analyze the markdown file and output the table information.
 
 ```sh
-mdsql abc.md
+mdtsql abc.md
 Table Name: [abc]
 +-------------+------+
 | column name | type |
