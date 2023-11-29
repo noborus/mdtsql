@@ -15,12 +15,3 @@ func queryExec(fileName string, query string, caption bool) error {
 
 	return mdtsql.MarkdownQuery(fileName, query, caption, w)
 }
-
-func analyzeDump(fileName string, caption bool) error {
-	im, err := mdtsql.Analyze(fileName, caption)
-	if err != nil {
-		return err
-	}
-	im.Dump(os.Stdout)
-	return nil
-}

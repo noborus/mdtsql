@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -25,19 +24,7 @@ The result can be output to CSV, JSON, LTSV, YAML, Markdown, etc.`,
 			fmt.Printf("mdtsql version %s rev:%s\n", Version, Revision)
 			return
 		}
-		fileName := ""
-		if len(args) >= 1 {
-			fileName = args[0]
-		}
-		var err error
-		if Query != "" {
-			err = queryExec(fileName, Query, Caption)
-		} else {
-			err = analyzeDump(fileName, Caption)
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
+		cmd.Help()
 	},
 }
 

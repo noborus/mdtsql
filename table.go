@@ -34,13 +34,6 @@ func (t table) ReadRow(row []interface{}) ([]interface{}, error) {
 	return nil, io.EOF
 }
 
-func toText(buf []byte) string {
-	if len(buf) > 0 {
-		return string(buf)
-	}
-	return ""
-}
-
 func (im *Importer) tableNode(node ast.Node) table {
 	t := table{}
 	for n := node.FirstChild(); n != nil; n = n.NextSibling() {
