@@ -3,7 +3,6 @@ package mdtsql
 import (
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 
 	"github.com/noborus/trdsql"
@@ -134,7 +133,7 @@ func (r *MDTReader) parseNode(node ast.Node) error {
 			}
 		}
 	default:
-		return fmt.Errorf("unknown node %v:%v", node.Kind(), node.Type())
+		fmt.Printf("unknown node %v:%v", node.Kind(), node.Type())
 	}
 
 	return nil
