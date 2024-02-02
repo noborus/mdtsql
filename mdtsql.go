@@ -8,18 +8,9 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/yuin/goldmark/ast"
 )
 
-type Importer struct {
-	tableName string
-	caption   bool
-	tables    []table
-	node      ast.Node
-	source    []byte
-}
-
-func Analyze(fileName string, caption bool) (*Importer, error) {
+func Analyze(fileName string, caption bool) ([]table, error) {
 	if fileName == "" {
 		return nil, fmt.Errorf("require markdown file")
 	}
@@ -44,20 +35,20 @@ func Analyze(fileName string, caption bool) (*Importer, error) {
 	if err := r.parse(f); err != nil {
 		return nil, err
 	}
-	im := &Importer{}
+	tables := make([]table, 0, len(r.tables))
 	for i, node := range r.tables {
 		table, err := tableNode(r.source, node)
 		if err != nil {
 			return nil, err
 		}
 		table.tableName = strconv.Itoa(i)
-		im.tables = append(im.tables, table)
+		tables = append(tables, table)
 	}
-	return im, nil
+	return tables, nil
 }
 
-func (im *Importer) Dump(w io.Writer) {
-	for _, table := range im.tables {
+func Dump(w io.Writer, tables []table) {
+	for _, table := range tables {
 		fmt.Fprintf(w, "Table Name: [%s]\n", table.tableName)
 		typeTable := tablewriter.NewWriter(w)
 		typeTable.SetAutoFormatHeaders(false)

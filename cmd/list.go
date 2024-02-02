@@ -30,11 +30,11 @@ to quickly create a Cobra application.`,
 }
 
 func analyzeDump(fileName string, caption bool) error {
-	im, err := mdtsql.Analyze(fileName, caption)
+	tables, err := mdtsql.Analyze(fileName, caption)
 	if err != nil {
 		return err
 	}
-	im.Dump(os.Stdout)
+	mdtsql.Dump(os.Stdout, tables)
 	return nil
 }
 
