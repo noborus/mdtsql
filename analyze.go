@@ -10,7 +10,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-func Analyze(fileName string, caption bool) ([]table, error) {
+func Analyze(fileName string) ([]table, error) {
 	if fileName == "" {
 		return nil, fmt.Errorf("require markdown file")
 	}
@@ -32,6 +32,7 @@ func Analyze(fileName string, caption bool) ([]table, error) {
 	}
 
 	r := MDTReader{}
+	r.caption = Caption
 	if err := r.parse(f); err != nil {
 		return nil, err
 	}
@@ -41,7 +42,11 @@ func Analyze(fileName string, caption bool) ([]table, error) {
 		if err != nil {
 			return nil, err
 		}
-		table.tableName = strconv.Itoa(i)
+		if r.caption {
+			table.tableName = r.tableNames[i]
+		} else {
+			table.tableName = strconv.Itoa(i)
+		}
 		tables = append(tables, table)
 	}
 	return tables, nil
