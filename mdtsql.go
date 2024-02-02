@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/noborus/trdsql"
 	"github.com/olekukonko/tablewriter"
@@ -73,12 +75,32 @@ func Analyze(fileName string, caption bool) (*Importer, error) {
 	if fileName == "-" {
 		fileName = "stdin"
 	}
-	im, err := importer(fileName, caption)
-	if err != nil {
+	if idx := strings.Index(fileName, "::"); idx != -1 {
+		fileName = fileName[:idx]
+	}
+	var f io.Reader
+	if fileName != "stdin" {
+		var err error
+		f, err = os.Open(fileName)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		f = os.Stdin
+	}
+
+	r := MDTReader{}
+	if err := r.parse(f); err != nil {
 		return nil, err
 	}
-	if err = im.Analyze(); err != nil {
-		return nil, err
+	im := &Importer{}
+	for i, node := range r.tables {
+		table, err := tableNode(r.source, node)
+		if err != nil {
+			return nil, err
+		}
+		table.tableName = strconv.Itoa(i)
+		im.tables = append(im.tables, table)
 	}
 	return im, nil
 }

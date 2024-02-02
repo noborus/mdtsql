@@ -26,15 +26,41 @@ type MDTReader struct {
 	source    []byte
 }
 
-func NewMDTReader(reader io.Reader, opts *trdsql.ReadOpts) (trdsql.Reader, error) {
-	opt := opts.InJQuery
+func targetTable(optString string) int {
 	target := 0
-	if opt != "" {
-		n, err := strconv.Atoi(opt)
+	if optString != "" {
+		n, err := strconv.Atoi(optString)
 		if err == nil {
 			target = n
 		}
 	}
+	return target
+}
+
+func NewMDTReader(reader io.Reader, opts *trdsql.ReadOpts) (trdsql.Reader, error) {
+	target := targetTable(opts.InJQuery)
+	r := MDTReader{}
+	if err := r.parse(reader); err != nil {
+		return nil, err
+	}
+
+	for i, node := range r.tables {
+		if i != target {
+			continue
+		}
+		table, err := tableNode(r.source, node)
+		if err != nil {
+			return nil, err
+		}
+		r.names = table.names
+		r.types = table.types
+		r.body = table.body
+	}
+
+	return &r, nil
+}
+
+func (r *MDTReader) parse(reader io.Reader) error {
 	gmd := goldmark.New(
 		goldmark.WithExtensions(extension.GFM),
 		goldmark.WithParserOptions(
@@ -47,13 +73,12 @@ func NewMDTReader(reader io.Reader, opts *trdsql.ReadOpts) (trdsql.Reader, error
 	)
 	source, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	parser := gmd.Parser()
 	node := parser.Parse(text.NewReader(source))
 
-	r := MDTReader{}
 	for n := node.FirstChild(); n != nil; n = n.NextSibling() {
 		switch n.Kind() {
 		case gast.KindTableHeader:
@@ -86,31 +111,14 @@ func NewMDTReader(reader io.Reader, opts *trdsql.ReadOpts) (trdsql.Reader, error
 		}
 	}
 	r.source = source
-	if err := r.parseNode(node, target); err != nil {
-		return nil, err
-	}
-
-	for i, node := range r.tables {
-		if i != target {
-			continue
-		}
-		table, err := tableNode(r.source, node)
-		if err != nil {
-			return nil, err
-		}
-		r.names = table.names
-		r.types = table.types
-		r.body = table.body
-	}
-
-	return &r, nil
+	return r.parseNode(node)
 }
 
-func (r *MDTReader) parseNode(node ast.Node, target int) error {
+func (r *MDTReader) parseNode(node ast.Node) error {
 	switch node.Type() {
 	case ast.TypeDocument:
 		for n := node.FirstChild(); n != nil; n = n.NextSibling() {
-			if err := r.parseNode(n, target); err != nil {
+			if err := r.parseNode(n); err != nil {
 				return err
 			}
 		}
