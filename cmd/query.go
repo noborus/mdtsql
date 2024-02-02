@@ -28,7 +28,7 @@ func exec(args []string) error {
 		trdsql.EnableDebug()
 	}
 	query := strings.Join(args, " ")
-
+	trdsql.EnableMultipleQueries()
 	writer := newWriter(os.Stdout, os.Stderr)
 	trd := trdsql.NewTRDSQL(
 		trdsql.NewImporter(
