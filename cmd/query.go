@@ -11,8 +11,9 @@ import (
 // queryCmd represents the query command
 var queryCmd = &cobra.Command{
 	Use:   "query",
-	Short: "Execute SQL-like queries on tabular data",
-	Long: `Execute SQL-like queries on tabular data. This command allows you to run SQL queries against tables formatted in Markdown within the specified files.`,
+	Short: "Execute SQL queries on markdown table and tabular data",
+	Long: `Execute SQL queries on markdown table and tabular data.
+This command allows you to run SQL queries against tables formatted in Markdown within the specified files.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return exec(args)
 	},

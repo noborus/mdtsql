@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/noborus/mdtsql"
 	"github.com/noborus/trdsql"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -56,9 +57,6 @@ var Ver bool
 // Debug is debug print.
 var Debug bool
 
-// Caption makes the text before the table the table name.
-var Caption bool
-
 // Delimiter is a delimiter specification (CSV ans RAW only).
 var Delimiter string
 
@@ -77,7 +75,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mdtsql.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&Ver, "version", "v", false, "display version information")
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "debug print")
-	rootCmd.PersistentFlags().BoolVarP(&Caption, "caption", "c", false, "caption table name")
+	rootCmd.PersistentFlags().BoolVarP(&mdtsql.Caption, "caption", "c", false, "caption table name")
 	rootCmd.PersistentFlags().StringVarP(&Query, "query", "q", "", "SQL query")
 
 	rootCmd.PersistentFlags().StringVarP(&OutFormat, "OutFormat", "o", "md", "output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf|yaml")

@@ -15,37 +15,44 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
+// Caption is a caption specification.
+var Caption bool
+
+// MDTReader is a reader for markdown table.
 type MDTReader struct {
-	tableName string
-	caption   bool
-	names     []string
-	types     []string
-	tables    []ast.Node
-	body      [][]interface{}
-	source    []byte
+	tableNames []string
+	caption    bool
+	names      []string
+	types      []string
+	tables     []ast.Node
+	body       [][]interface{}
+	source     []byte
 }
 
-func targetTable(optString string) int {
-	target := 0
-	if optString != "" {
-		n, err := strconv.Atoi(optString)
-		if err == nil {
-			target = n
-		}
-	}
-	return target
-}
-
+// NewMDTReader returns a new MDTReader.
 func NewMDTReader(reader io.Reader, opts *trdsql.ReadOpts) (trdsql.Reader, error) {
-	target := targetTable(opts.InJQuery)
 	r := MDTReader{}
+	r.caption = Caption
+	target := 0
+	capTitle := ""
+	if r.caption {
+		capTitle = opts.InJQuery
+	} else {
+		target = targetTable(opts.InJQuery)
+	}
 	if err := r.parse(reader); err != nil {
 		return nil, err
 	}
 
 	for i, node := range r.tables {
-		if i != target {
-			continue
+		if r.caption {
+			if r.tableNames[i] != capTitle {
+				continue
+			}
+		} else {
+			if i != target {
+				continue
+			}
 		}
 		table, err := tableNode(r.source, node)
 		if err != nil {
@@ -59,6 +66,21 @@ func NewMDTReader(reader io.Reader, opts *trdsql.ReadOpts) (trdsql.Reader, error
 	return &r, nil
 }
 
+func targetTable(optString string) int {
+	target := 0
+	if optString != "" {
+		n, err := strconv.Atoi(optString)
+		if err == nil {
+			target = n
+		}
+	}
+	return target
+}
+
+// parse reads the content from the given io.Reader and parses it using the goldmark library.
+// It populates the MDTReader's names and source fields based on the parsed content.
+// The parsed content is then passed to the parseNode method for further processing.
+// Returns an error if there was an issue reading or parsing the content.
 func (r *MDTReader) parse(reader io.Reader) error {
 	gmd := goldmark.New(
 		goldmark.WithExtensions(extension.GFM),
@@ -129,7 +151,7 @@ func (r *MDTReader) parseNode(node ast.Node) error {
 		switch node.Kind() {
 		case ast.KindHeading, ast.KindParagraph:
 			if r.caption {
-				r.tableName = string(node.Text(r.source))
+				r.tableNames = append(r.tableNames, string(node.Text(r.source)))
 			}
 		}
 	default:
