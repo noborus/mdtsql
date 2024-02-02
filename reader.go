@@ -134,8 +134,7 @@ func (r *MDTReader) parseNode(node ast.Node) error {
 			}
 		}
 	default:
-		fmt.Fprintf(os.Stderr, "unknown node:")
-		fmt.Fprintf(os.Stderr, "%v:%v\n", node.Kind(), node.Type())
+		return fmt.Errorf("unknown node %v:%v", node.Kind(), node.Type())
 	}
 
 	return nil
