@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/noborus/trdsql"
 	"github.com/yuin/goldmark"
@@ -151,7 +152,11 @@ func (r *MDTReader) parseNode(node ast.Node) error {
 		switch node.Kind() {
 		case ast.KindHeading, ast.KindParagraph:
 			if r.caption {
-				r.tableNames = append(r.tableNames, string(node.Text(r.source)))
+				caption := string(node.Text(r.source))
+				if r.existsTableName(caption) {
+					caption = incrementName(caption)
+				}
+				r.tableNames = append(r.tableNames, caption)
 			}
 		}
 	default:
@@ -159,6 +164,28 @@ func (r *MDTReader) parseNode(node ast.Node) error {
 	}
 
 	return nil
+}
+
+func (r *MDTReader) existsTableName(name string) bool {
+	for _, n := range r.tableNames {
+		if n == name {
+			return true
+		}
+	}
+	return false
+}
+
+func incrementName(name string) string {
+	names := strings.Split(name, "_")
+	if len(names) == 1 {
+		return fmt.Sprintf("%s_1", name)
+	}
+	n, err := strconv.Atoi(names[len(names)-1])
+	if err != nil {
+		return fmt.Sprintf("%s_1", name)
+	}
+	n++
+	return fmt.Sprintf("%s_%d", name, n)
 }
 
 func tableNode(source []byte, node ast.Node) (table, error) {
