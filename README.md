@@ -22,7 +22,7 @@ Executes SQL for markdown containing table.
 The result can be output to CSV, JSON, LTSV, YAML, Markdown, etc.
 
 ```sh
-mdtsql query "SELECT * FROM file" file.md
+mdtsql query "SELECT * FROM file.md"
 ```
 
 ```sh
@@ -32,7 +32,7 @@ mdtsql table file.md
 ### option
 
 ```console
-mdtsql -h
+mdtsql --help
 Execute SQL for table in markdown.
 The result can be output to CSV, JSON, LTSV, YAML, Markdown, etc.
 
@@ -55,8 +55,6 @@ Flags:
       --config string      config file (default is $HOME/.mdtsql.yaml)
       --debug              debug print
   -h, --help               help for mdtsql
-  -q, --query string       SQL query
-  -t, --toggle             Help message for toggle
   -v, --version            display version information
 
 Use "mdtsql [command] --help" for more information about a command.
@@ -199,7 +197,7 @@ mdtsql --caption query "SELECT * FROM testdata/abc.md::caption_1"
 You can specify multiple queries with the `;` separator.
 
 ```console
-$ mdtsql query "INSERT INTO abc.md::2 (c1, a, b, c) VALUES ('4', 'a4', 'b4', 'c4');SELECT * FROM abc.md::2"
+mdtsql query "INSERT INTO abc.md::2 (c1, a, b, c) VALUES ('4', 'a4', 'b4', 'c4');SELECT * FROM abc.md::2"
 ```
 
 | c1 | a  | b  | c  |
@@ -210,7 +208,7 @@ $ mdtsql query "INSERT INTO abc.md::2 (c1, a, b, c) VALUES ('4', 'a4', 'b4', 'c4
 | **4** | **a4** | **b4** | **c4** |
 
 ```console
-$ mdtsql query "UPDATE abc.md::2 SET c='u4' WHERE c1=3;SELECT * FROM abc.md::2"
+mdtsql query "UPDATE abc.md::2 SET c='u4' WHERE c1=3;SELECT * FROM abc.md::2"
 ```
 
 | c1 | a  | b  | c  |
@@ -218,4 +216,3 @@ $ mdtsql query "UPDATE abc.md::2 SET c='u4' WHERE c1=3;SELECT * FROM abc.md::2"
 |  1 | a1 | b1 | c1 |
 |  2 | a2 | b2 | c2 |
 |  3 | a3 | b3 | **u4** |
-```
