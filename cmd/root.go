@@ -17,6 +17,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mdtsql",
+	Args:  cobra.MinimumNArgs(1),
 	Short: "Execute SQL for markdown table",
 	Long: `Execute SQL for table in markdown.
 The result can be output to CSV, JSON, LTSV, YAML, Markdown, etc.`,
@@ -63,9 +64,6 @@ var Delimiter string
 // OutFormat is an output format specification.
 var OutFormat string
 
-// Query is exec SQL query.
-var Query string
-
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -76,15 +74,10 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Ver, "version", "v", false, "display version information")
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "debug print")
 	rootCmd.PersistentFlags().BoolVarP(&mdtsql.Caption, "caption", "c", false, "caption table name")
-	rootCmd.PersistentFlags().StringVarP(&Query, "query", "q", "", "SQL query")
 
 	rootCmd.PersistentFlags().StringVarP(&OutFormat, "OutFormat", "o", "md", "output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf|yaml")
 	rootCmd.PersistentFlags().StringVarP(&Delimiter, "Delimiter", "d", ",", "output delimiter (CSV only)")
 	rootCmd.PersistentFlags().BoolVarP(&Header, "Header", "O", false, "output header (CSV only)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
