@@ -1,6 +1,9 @@
 # mdtsql
 
-A CLI tool that executes SQL queries and converts the results into a Markdown table.
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/noborus/mdtsql)](https://pkg.go.dev/github.com/noborus/mdtsql)
+[![Actions Status](https://github.com/noborus/mdtsql/workflows/Go/badge.svg)](https://github.com/noborus/mdtsql/actions)
+
+A CLI tool that executes SQL queries on various files including markdown table files and outputs the results to various files.
 
 ## install
 
