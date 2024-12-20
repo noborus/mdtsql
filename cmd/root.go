@@ -14,7 +14,7 @@ import (
 
 var cfgFile string
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "mdtsql",
 	Args:  cobra.MinimumNArgs(1),
@@ -31,9 +31,9 @@ The result can be output to CSV, JSON, LTSV, YAML, Markdown, etc.`,
 }
 
 var (
-	// Version represents the version
+	// Version represents the version.
 	Version string
-	// Revision set "git rev-parse --short HEAD"
+	// Revision set "git rev-parse --short HEAD".
 	Revision string
 )
 

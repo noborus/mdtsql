@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// queryCmd represents the query command
+// queryCmd represents the query command.
 var queryCmd = &cobra.Command{
 	Use:   "query",
 	Short: "Execute SQL queries on markdown table and tabular data",
@@ -20,11 +20,11 @@ This command allows you to run SQL queries against tables formatted in Markdown 
 }
 
 func exec(args []string) error {
+	trdsql.EnableMultipleQueries()
 	if Debug {
 		trdsql.EnableDebug()
 	}
-	query := strings.Join(args, " ")
-	trdsql.EnableMultipleQueries()
+
 	writer := newWriter(os.Stdout, os.Stderr)
 	trd := trdsql.NewTRDSQL(
 		trdsql.NewImporter(
@@ -33,6 +33,7 @@ func exec(args []string) error {
 		),
 		trdsql.NewExporter(writer),
 	)
+	query := strings.Join(args, " ")
 	return trd.Exec(query)
 }
 

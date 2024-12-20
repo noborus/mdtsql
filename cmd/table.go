@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// tableCmd represents the table command
+// tableCmd represents the table command.
 var tableCmd = &cobra.Command{
 	Use: "table",
 
@@ -23,7 +23,6 @@ func execTable(table string) error {
 	if Debug {
 		trdsql.EnableDebug()
 	}
-	query := "SELECT * FROM " + table
 	writer := newWriter(os.Stdout, os.Stderr)
 	trd := trdsql.NewTRDSQL(
 		trdsql.NewImporter(
@@ -32,6 +31,7 @@ func execTable(table string) error {
 		),
 		trdsql.NewExporter(writer),
 	)
+	query := "SELECT * FROM " + table
 	return trd.Exec(query)
 }
 

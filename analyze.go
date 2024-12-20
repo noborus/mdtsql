@@ -10,6 +10,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+// Analyze parses the markdown file and returns the table information.
 func Analyze(fileName string) ([]table, error) {
 	if fileName == "" {
 		return nil, fmt.Errorf("require markdown file")
@@ -20,22 +21,25 @@ func Analyze(fileName string) ([]table, error) {
 	if idx := strings.Index(fileName, "::"); idx != -1 {
 		fileName = fileName[:idx]
 	}
-	var f io.Reader
+
+	var reader io.Reader = os.Stdin
 	if fileName != "stdin" {
-		var err error
-		f, err = os.Open(fileName)
+		f, err := os.Open(fileName)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		f = os.Stdin
+		reader = f
 	}
 
 	r := MDTReader{}
 	r.caption = Caption
-	if err := r.parse(f); err != nil {
+	if err := r.parse(reader); err != nil {
 		return nil, err
 	}
+	if len(r.tables) == 0 {
+		return nil, fmt.Errorf("no markdown table found")
+	}
+
 	tables := make([]table, 0, len(r.tables))
 	for i, node := range r.tables {
 		table, err := tableNode(r.source, node)
@@ -52,14 +56,15 @@ func Analyze(fileName string) ([]table, error) {
 	return tables, nil
 }
 
+// Dump outputs the table information.
 func Dump(w io.Writer, tables []table) {
 	for _, table := range tables {
 		fmt.Fprintf(w, "Table Name: [%s]\n", table.tableName)
 		typeTable := tablewriter.NewWriter(w)
 		typeTable.SetAutoFormatHeaders(false)
 		typeTable.SetHeader([]string{"column name", "type"})
-		for _, name := range table.names {
-			typeTable.Append([]string{name, "text"})
+		for n, name := range table.names {
+			typeTable.Append([]string{name, table.types[n]})
 		}
 		typeTable.Render()
 		fmt.Fprintf(w, "\n")
