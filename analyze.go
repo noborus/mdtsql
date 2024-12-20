@@ -28,6 +28,7 @@ func Analyze(fileName string) ([]table, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer f.Close()
 		reader = f
 	}
 
