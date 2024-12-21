@@ -5,10 +5,11 @@ import (
 	"os"
 
 	"github.com/noborus/mdtsql"
+	"github.com/noborus/trdsql"
 	"github.com/spf13/cobra"
 )
 
-// listCmd represents the list command
+// listCmd represents the list command.
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List and analyze SQL dumps",
@@ -27,10 +28,15 @@ var listCmd = &cobra.Command{
 
 func analyzeDump(fileName string) error {
 	tables, err := mdtsql.Analyze(fileName)
-	if err != nil {
+	if err == nil {
+		mdtsql.Dump(os.Stdout, tables)
+		return nil
+	}
+
+	// fallback to trdsql.Analyze.
+	if err := trdsql.Analyze(fileName, trdsql.NewAnalyzeOpts(), trdsql.NewReadOpts()); err != nil {
 		return err
 	}
-	mdtsql.Dump(os.Stdout, tables)
 	return nil
 }
 
