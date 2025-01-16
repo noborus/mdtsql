@@ -75,7 +75,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "debug print")
 	rootCmd.PersistentFlags().BoolVarP(&mdtsql.Caption, "caption", "c", false, "caption table name")
 
-	validOutFormats := []string{"GUESS", "CSV", "AT", "LTSV", "JSON", "JSONL", "TBLN", "RAW", "MD", "VF", "YAML", "MD"}
+	validOutFormats := []string{"GUESS", "CSV", "AT", "LTSV", "JSON", "JSONL", "TBLN", "RAW", "MD", "VF", "YAML"}
 	outputFormats := fmt.Sprintf("Output Format[%s]", strings.Join(validOutFormats, "|"))
 	rootCmd.PersistentFlags().StringVarP(&OutFormat, "out", "o", "GUESS", outputFormats)
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
