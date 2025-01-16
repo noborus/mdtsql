@@ -75,7 +75,21 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "debug print")
 	rootCmd.PersistentFlags().BoolVarP(&mdtsql.Caption, "caption", "c", false, "caption table name")
 
-	rootCmd.PersistentFlags().StringVarP(&OutFormat, "OutFormat", "o", "md", "output format=at|csv|ltsv|json|jsonl|tbln|raw|md|vf|yaml")
+	validOutFormats := []string{"GUESS", "CSV", "AT", "LTSV", "JSON", "JSONL", "TBLN", "RAW", "MD", "VF", "YAML", "MD"}
+	outputFormats := fmt.Sprintf("Output Format[%s]", strings.Join(validOutFormats, "|"))
+	rootCmd.PersistentFlags().StringVarP(&OutFormat, "out", "o", "GUESS", outputFormats)
+	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		format := strings.ToUpper(OutFormat)
+		for _, valid := range validOutFormats {
+			if format == valid {
+				return nil
+			}
+		}
+		return fmt.Errorf("invalid output format: %s", OutFormat)
+	}
+	_ = rootCmd.RegisterFlagCompletionFunc("out", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return validOutFormats, cobra.ShellCompDirectiveDefault
+	})
 	rootCmd.PersistentFlags().StringVarP(&Delimiter, "Delimiter", "d", ",", "output delimiter (CSV only)")
 	rootCmd.PersistentFlags().BoolVarP(&Header, "Header", "O", false, "output header (CSV only)")
 }
