@@ -8,7 +8,7 @@ type table struct {
 	tableName string
 	names     []string
 	types     []string
-	body      [][]interface{}
+	body      [][]any
 }
 
 // Names returns the column names.

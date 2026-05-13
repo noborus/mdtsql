@@ -3,6 +3,7 @@ package mdtsql
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -26,7 +27,7 @@ type MDTReader struct {
 	names      []string
 	types      []string
 	tables     []ast.Node
-	body       [][]interface{}
+	body       [][]any
 	source     []byte
 }
 
@@ -123,7 +124,7 @@ func (r *MDTReader) parse(reader io.Reader) error {
 				}
 				row = append(row, string(rawText))
 			}
-			data := make([]interface{}, len(row))
+			data := make([]any, len(row))
 			for i, col := range row {
 				data[i] = col
 			}
@@ -167,12 +168,7 @@ func (r *MDTReader) parseNode(node ast.Node) error {
 }
 
 func (r *MDTReader) existsTableName(name string) bool {
-	for _, n := range r.tableNames {
-		if n == name {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(r.tableNames, name)
 }
 
 func incrementName(name string) string {
@@ -212,7 +208,7 @@ func tableNode(source []byte, node ast.Node) (table, error) {
 				}
 				row = append(row, string(rawText))
 			}
-			data := make([]interface{}, len(row))
+			data := make([]any, len(row))
 			for i, col := range row {
 				data[i] = col
 			}
@@ -236,12 +232,12 @@ func (t MDTReader) Types() ([]string, error) {
 	return t.types, nil
 }
 
-func (t MDTReader) PreReadRow() [][]interface{} {
+func (t MDTReader) PreReadRow() [][]any {
 	return t.body
 }
 
 // ReadRow only returns EOF.
-func (t MDTReader) ReadRow(row []interface{}) ([]interface{}, error) {
+func (t MDTReader) ReadRow(row []any) ([]any, error) {
 	return nil, io.EOF
 }
 
