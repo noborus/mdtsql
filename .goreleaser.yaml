@@ -37,6 +37,9 @@ archives:
     format_overrides:
     - goos: windows
       formats: [zip]
+release:
+  extra_files:
+    - glob: ./dist/homebrew/*.rb
 checksum:
   name_template: 'checksums.txt'
 changelog:
@@ -51,7 +54,7 @@ brews:
     repository:
       owner: noborus
       name: homebrew-tap
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    skip_upload: true
     commit_author:
       name: noborus
       email: noborusai@gmail.com
