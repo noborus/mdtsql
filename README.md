@@ -19,6 +19,62 @@ go install github.com/noborus/mdtsql/cmd/mdtsql@latest
 brew install noborus/tap/mdtsql
 ```
 
+### Linux packages (deb/rpm)
+
+Linux users can install prebuilt packages from the [Github Releases](https://github.com/noborus/mdtsql/releases) page.
+
+- Debian/Ubuntu: `*.deb`
+- RHEL/Fedora/openSUSE: `*.rpm`
+
+Asset names are published like this:
+
+- `mdtsql_<version>_linux_amd64.deb`
+- `mdtsql_<version>_linux_amd64.rpm`
+- `mdtsql_<version>_linux_386.deb`
+- `mdtsql_<version>_linux_386.rpm`
+- `mdtsql_<version>_linux_arm64.deb`
+- `mdtsql_<version>_linux_arm64.rpm`
+
+Example:
+
+```console
+# Debian/Ubuntu
+sudo dpkg -i mdtsql_<version>_linux_amd64.deb
+
+# RHEL/Fedora/openSUSE
+sudo rpm -i mdtsql_<version>_linux_amd64.rpm
+```
+
+Download and install example (`v0.1.0`, amd64):
+
+```console
+curl -fLO https://github.com/noborus/mdtsql/releases/download/v0.1.0/mdtsql_0.1.0_linux_amd64.deb
+sudo dpkg -i mdtsql_0.1.0_linux_amd64.deb
+```
+
+### Binary
+
+Download the latest release from [Github Releases](https://github.com/noborus/mdtsql/releases)
+
+The following binaries can be downloaded from release.
+
+- Darwin_arm64
+- Darwin_x86_64
+- Linux_arm64
+- Linux_i386
+- Linux_x86_64
+- Windows_arm64
+- Windows_x86_64
+
+To install a binary, download the appropriate file for your system, extract it, and place the `mdtsql` executable in a directory included in your system's `PATH`.
+
+For example, on a Unix-like system, you might do:
+
+```console
+tar xvf mdtsql_Darwin_x86_64.tar.gz
+mv mdtsql /usr/local/bin/
+```
+
 ## Usage
 
 Executes SQL for markdown containing table.
